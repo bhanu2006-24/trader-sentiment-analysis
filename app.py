@@ -16,17 +16,17 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main {
-        background-color: #f5f7f9;
+        background-color: #0f171f;
     }
     .stApp header {
-        background-color: #f5f7f9;
+        background-color: #0f171f;
     }
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
     .metric-card {
-        background-color: white;
+        background-color: black;
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
