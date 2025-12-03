@@ -1,0 +1,56 @@
+https://colab.research.google.com/drive/1tGbzZAlgy0sQKBOfTaWTzc6JCMHLoDh5#scrollTo=4f390f66
+
+notebook 0 = https://colab.research.google.com/drive/1fwZSGpqMl1hqfoPYQKiwEIJng-l7Jf5Q#scrollTo=X22qAcYChp5D
+
+fear_greed_dataset-link - https://drive.google.com/file/d/1PgQC0tO8XN-wqkNyghWc_-mnrYv_nhSf/view?usp=sharing
+
+historical_dataset_link - https://drive.google.com/file/d/1IAfLZwu6rJzyWKgBToqwSmmVYU6VbjVs/view?usp=sharing
+
+task = Data Science Assignment Instructions –
+Web3 Trading Team
+📂 Standardized Submission Format
+All candidate submissions must strictly follow this structure. Non-compliance will result in
+rejection of the application.
+🔹 Create a root directory with the following format:
+`ds_<candidate_name>`
+🔹 Inside this directory, maintain the following structure:
+ds_<candidate_name>/
+├ ── notebook_1.ipynb # All work should be done in Google Colab
+notebooks.
+├ ── notebook_2.ipynb # (Optional) Additional Colab notebook if
+needed.
+├ ── csv_files/ # Store all CSVs or data outputs here.
+│ └── *.csv # Any intermediate or processed data files.
+├ ── outputs/ # Store all visual outputs, graphs, or charts here.
+│ └── *.png / *.jpg # Image results of EDA, charts, etc.
+├ ── ds_report.pdf # Final summarized insights and explanations.
+└── README.md # (Optional but encouraged) Setup
+instructions, notes.
+🔹 All code must be shared as **Google Colab links** with access set to 'Anyone with the link can
+view'.
+🔹 The exact same structure must be updated in the GitHub repository as well.
+🔹 Failing to comply with any of the above instructions will result in immediate rejection.
+📂 Assignment Overview
+You are expected to explore and analyze the relationship between trader behavior and market
+sentiment using two key datasets.
+📂 Datasets
+1. **Bitcoin Market Sentiment Dataset**
+- Columns: `Date`, `Classification` (Fear / Greed)
+2. **Historical Trader Data from Hyperliquid**
+- Columns include: `account`, `symbol`, `execution price`, `size`, `side`, `time`, `start position`,
+`event`, `closedPnL`, `leverage`, etc.
+📂 Objective
+Analyze how trading behavior (profitability, risk, volume, leverage) aligns or diverges from
+overall market sentiment (fear vs greed). Identify hidden trends or signals that could influence
+smarter trading strategies.
+📂 Dataset Links
+1. Historical Trader Data:
+https://drive.google.com/file/d/1IAfLZwu6rJzyWKgBToqwSmmVYU6VbjV
+s/view?usp=sharing
+2. Fear & Greed Index:
+https://drive.google.com/file/d/1PgQC0tO8XN-wqkNyghWc_-
+mnrYv_nhSf/view?usp=sharing
+📂 Apply Now!
+This assignment is the first step in our hiring process. Top-performing candidates will be
+shortlisted for an interview.
+Apply now and take the next step in your data science career with one
