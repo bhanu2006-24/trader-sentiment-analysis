@@ -1,36 +1,57 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 
-# Set page configuration
-st.set_page_config(page_title="Trader Sentiment Analysis Dashboard", layout="wide")
+# --- Page Configuration ---
+st.set_page_config(
+    page_title="Trader Sentiment Dashboard",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Title and Introduction
-st.title("Trader Sentiment Analysis Dashboard")
+# --- Custom CSS for Premium Look ---
 st.markdown("""
-This dashboard visualizes the relationship between market sentiment (Fear & Greed Index) and trading activity.
-It replicates the analysis performed in `Notebook_1.ipynb`.
-""")
+<style>
+    .main {
+        background-color: #f5f7f9;
+    }
+    .stApp header {
+        background-color: #f5f7f9;
+    }
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    .metric-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    h1, h2, h3 {
+        color: #2c3e50;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# --- Data Loading and Processing ---
-
+# --- Data Loading ---
 @st.cache_data
 def load_data():
     """Loads and processes the sentiment and trader data."""
-    
-    # Load Sentiment Data
     try:
         sentiment_df = pd.read_csv("csv_files/fear_greed_index.csv")
         sentiment_df["datetime"] = pd.to_datetime(sentiment_df["timestamp"], unit="s")
-        sentiment_clean = sentiment_df[["datetime", "classification"]].copy()
+        sentiment_clean = sentiment_df[["datetime", "classification", "value"]].copy()
         sentiment_clean["date"] = sentiment_clean["datetime"].dt.date
     except FileNotFoundError:
         st.error("Error: `csv_files/fear_greed_index.csv` not found.")
         return None
 
-    # Load Trader Data
     try:
         trader_df = pd.read_csv("csv_files/historical_data.csv")
         trader_df["datetime"] = pd.to_datetime(trader_df["Timestamp"], unit="ms")
@@ -46,139 +67,183 @@ def load_data():
         st.error("Error: `csv_files/historical_data.csv` not found.")
         return None
 
-    # Merge Data
     merged_df = pd.merge(
         trader_clean,
-        sentiment_clean[["date", "classification"]],
+        sentiment_clean[["date", "classification", "value"]],
         on="date",
         how="left"
     )
     
+    # Fill missing classifications if any (optional, depending on data quality)
+    merged_df["classification"] = merged_df["classification"].fillna("Unknown")
+    
     return merged_df
 
-# Load the data
-merged_df = load_data()
+df = load_data()
 
-if merged_df is not None:
-    # --- Sidebar Filters ---
-    st.sidebar.header("Filters")
+if df is not None:
+    # --- Sidebar ---
+    st.sidebar.title("⚙️ Dashboard Settings")
+    st.sidebar.markdown("Filter the data to explore specific market conditions.")
+
+    # Date Filter
+    min_date = df["date"].min()
+    max_date = df["date"].max()
     
-    # Date Range Filter
-    min_date = merged_df["date"].min()
-    max_date = merged_df["date"].max()
-    
-    start_date, end_date = st.sidebar.date_input(
+    date_range = st.sidebar.date_input(
         "Select Date Range",
         [min_date, max_date],
         min_value=min_date,
         max_value=max_date
     )
-    
-    # Filter data based on date range
-    filtered_df = merged_df[
-        (merged_df["date"] >= start_date) & 
-        (merged_df["date"] <= end_date)
-    ]
-    
-    # --- Visualizations ---
-    
-    st.header("Exploratory Data Analysis")
 
-    # 1. Average Closed PnL by Sentiment
-    st.subheader("1. Average Closed PnL by Sentiment")
-    st.markdown("This chart shows the average Profit and Loss (PnL) for trades, grouped by market sentiment.")
-    
-    avg_pnl = filtered_df.groupby("classification")["Closed PnL"].mean().reset_index()
-    
-    fig1, ax1 = plt.subplots(figsize=(10, 6))
-    sns.barplot(data=avg_pnl, x="classification", y="Closed PnL", hue="classification", palette="coolwarm", legend=False, ax=ax1)
-    ax1.set_title("Average Closed PnL by Sentiment")
-    ax1.set_xlabel("Sentiment")
-    ax1.set_ylabel("Average PnL")
-    st.pyplot(fig1)
+    # Sentiment Filter
+    all_sentiments = sorted(df["classification"].unique())
+    selected_sentiments = st.sidebar.multiselect(
+        "Select Market Sentiment",
+        all_sentiments,
+        default=all_sentiments
+    )
 
-    # 2. Total Trade Volume by Sentiment
-    st.subheader("2. Total Trade Volume by Sentiment")
-    st.markdown("This chart displays the total amount of money (in USD) traded during each market sentiment.")
-    
-    total_volume = filtered_df.groupby("classification")["Size USD"].sum().reset_index()
-    
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
-    sns.barplot(data=total_volume, x="classification", y="Size USD", hue="classification", palette="viridis", legend=False, ax=ax2)
-    ax2.set_title("Total Trade Volume (USD) by Sentiment")
-    ax2.set_xlabel("Sentiment")
-    ax2.set_ylabel("Total USD Traded")
-    st.pyplot(fig2)
+    # Trade Side Filter
+    all_sides = sorted(df["Side"].unique())
+    selected_sides = st.sidebar.multiselect(
+        "Select Trade Side",
+        all_sides,
+        default=all_sides
+    )
 
-    # 3. Buy vs. Sell Ratio by Sentiment
-    st.subheader("3. Buy vs. Sell Ratio by Sentiment")
-    st.markdown("These charts show the proportion of 'BUY' vs 'SELL' trades for each market sentiment.")
-    
-    sentiments = filtered_df["classification"].dropna().unique()
-    
-    if len(sentiments) > 0:
-        # Calculate number of rows needed for subplots (2 columns)
-        n_sentiments = len(sentiments)
-        n_cols = 2
-        n_rows = (n_sentiments + 1) // n_cols
-        
-        fig3, axes = plt.subplots(n_rows, n_cols, figsize=(12, 6 * n_rows))
-        axes = axes.flatten()
-        
-        for i, sentiment in enumerate(sentiments):
-            subset = filtered_df[filtered_df["classification"] == sentiment]
-            side_counts = subset["Side"].value_counts()
-            
-            if not side_counts.empty:
-                axes[i].pie(
-                    side_counts,
-                    labels=side_counts.index,
-                    autopct="%1.1f%%",
-                    startangle=90,
-                    colors=["#66b3ff", "#ff9999"]
-                )
-                axes[i].set_title(f"Buy vs Sell - {sentiment}")
-            else:
-                axes[i].text(0.5, 0.5, "No Data", ha='center')
-                axes[i].set_title(f"Buy vs Sell - {sentiment}")
-
-        # Hide unused subplots
-        for j in range(i + 1, len(axes)):
-            axes[j].axis('off')
-            
-        st.pyplot(fig3)
+    # Apply Filters
+    if len(date_range) == 2:
+        start_date, end_date = date_range
+        mask = (
+            (df["date"] >= start_date) & 
+            (df["date"] <= end_date) &
+            (df["classification"].isin(selected_sentiments)) &
+            (df["Side"].isin(selected_sides))
+        )
+        filtered_df = df[mask]
     else:
-        st.info("No sentiment data available for the selected range.")
+        filtered_df = df
 
-    # 4. Percentage of Profitable Trades by Sentiment
-    st.subheader("4. Percentage of Profitable Trades by Sentiment")
-    st.markdown("This chart illustrates the percentage of trades that resulted in a profit, broken down by sentiment.")
-    
-    profit_rate = filtered_df.groupby("classification")["Closed PnL"].apply(lambda x: (x > 0).mean() * 100).reset_index(name="Profit Rate (%)")
-    
-    fig4, ax4 = plt.subplots(figsize=(10, 6))
-    sns.barplot(data=profit_rate, x="classification", y="Profit Rate (%)", hue="classification", palette="Set2", legend=False, ax=ax4)
-    ax4.set_title("Percentage of Profitable Trades by Sentiment")
-    ax4.set_ylabel("Profit Rate (%)")
-    ax4.set_xlabel("Sentiment")
-    st.pyplot(fig4)
+    # --- Main Content ---
+    st.title("📊 Trader Sentiment Analysis")
+    st.markdown("### Analyzing the impact of Market Fear & Greed on Trading Performance")
+    st.markdown("---")
 
-    # 5. Average Start Position by Sentiment
-    st.subheader("5. Average Start Position by Sentiment")
-    st.markdown("This bar chart displays the average 'Start Position' for trades, categorized by market sentiment.")
+    # --- Key Metrics ---
+    col1, col2, col3, col4 = st.columns(4)
     
-    # Check if 'Start Position' column exists (it wasn't explicitly dropped but let's be safe)
-    if "Start Position" in filtered_df.columns:
-        avg_position = filtered_df.groupby("classification")["Start Position"].mean().reset_index()
+    total_pnl = filtered_df["Closed PnL"].sum()
+    total_volume = filtered_df["Size USD"].sum()
+    win_rate = (filtered_df["Closed PnL"] > 0).mean() * 100
+    avg_trade_size = filtered_df["Size USD"].mean()
+
+    col1.metric("Total PnL", f"${total_pnl:,.2f}", delta_color="normal")
+    col2.metric("Total Volume", f"${total_volume:,.0f}")
+    col3.metric("Win Rate", f"{win_rate:.1f}%")
+    col4.metric("Avg Trade Size", f"${avg_trade_size:,.0f}")
+
+    st.markdown("---")
+
+    # --- Tabs for Analysis ---
+    tab1, tab2, tab3 = st.tabs(["💰 PnL Analysis", "📉 Volume & Activity", "🧠 Sentiment Insights"])
+
+    with tab1:
+        st.subheader("Profit & Loss Analysis")
         
-        fig5, ax5 = plt.subplots(figsize=(10, 6))
-        sns.barplot(data=avg_position, x="classification", y="Start Position", hue="classification", palette="magma", legend=False, ax=ax5)
-        ax5.set_title("Average Start Position by Sentiment")
-        ax5.set_xlabel("Sentiment")
-        ax5.set_ylabel("Average Start Position")
-        st.pyplot(fig5)
-    else:
-        st.warning("Column 'Start Position' not found in the dataset.")
+        # Avg PnL by Sentiment
+        avg_pnl = filtered_df.groupby("classification")["Closed PnL"].mean().reset_index()
+        fig_pnl = px.bar(
+            avg_pnl, 
+            x="classification", 
+            y="Closed PnL", 
+            color="classification",
+            title="Average Closed PnL by Sentiment",
+            color_discrete_sequence=px.colors.qualitative.Bold,
+            text_auto='.2f'
+        )
+        fig_pnl.update_layout(xaxis_title="Sentiment", yaxis_title="Average PnL ($)")
+        st.plotly_chart(fig_pnl, use_container_width=True)
+
+        # Percentage of Profitable Trades
+        profit_rate = filtered_df.groupby("classification")["Closed PnL"].apply(lambda x: (x > 0).mean() * 100).reset_index(name="Win Rate")
+        fig_win = px.bar(
+            profit_rate, 
+            x="classification", 
+            y="Win Rate", 
+            color="classification",
+            title="Win Rate (%) by Sentiment",
+            color_discrete_sequence=px.colors.qualitative.Pastel,
+            text_auto='.1f'
+        )
+        fig_win.update_layout(xaxis_title="Sentiment", yaxis_title="Win Rate (%)")
+        st.plotly_chart(fig_win, use_container_width=True)
+
+    with tab2:
+        st.subheader("Volume & Trading Activity")
+        
+        # Total Volume by Sentiment
+        vol_by_sentiment = filtered_df.groupby("classification")["Size USD"].sum().reset_index()
+        fig_vol = px.bar(
+            vol_by_sentiment, 
+            x="classification", 
+            y="Size USD", 
+            color="classification",
+            title="Total Trade Volume by Sentiment",
+            color_discrete_sequence=px.colors.qualitative.Prism,
+            text_auto='.2s'
+        )
+        fig_vol.update_layout(xaxis_title="Sentiment", yaxis_title="Total Volume ($)")
+        st.plotly_chart(fig_vol, use_container_width=True)
+
+        # Average Start Position
+        avg_pos = filtered_df.groupby("classification")["Start Position"].mean().reset_index()
+        fig_pos = px.bar(
+            avg_pos,
+            x="classification",
+            y="Start Position",
+            color="classification",
+            title="Average Position Size by Sentiment",
+            color_discrete_sequence=px.colors.qualitative.Safe,
+            text_auto='.2f'
+        )
+        fig_pos.update_layout(xaxis_title="Sentiment", yaxis_title="Avg Position Size")
+        st.plotly_chart(fig_pos, use_container_width=True)
+
+    with tab3:
+        st.subheader("Sentiment & Behavior")
+        
+        # Buy vs Sell Ratio
+        st.markdown("#### Buy vs Sell Distribution per Sentiment")
+        
+        # We need to create a subplot or just show multiple pie charts. 
+        # For a cleaner UI, let's use a selectbox to choose the sentiment to view details for.
+        
+        target_sentiment = st.selectbox("Select Sentiment to Analyze Detail", all_sentiments)
+        
+        subset = filtered_df[filtered_df["classification"] == target_sentiment]
+        
+        if not subset.empty:
+            side_counts = subset["Side"].value_counts().reset_index()
+            side_counts.columns = ["Side", "Count"]
+            
+            fig_pie = px.pie(
+                side_counts, 
+                values="Count", 
+                names="Side", 
+                title=f"Buy vs Sell Ratio - {target_sentiment}",
+                color="Side",
+                color_discrete_map={"BUY": "#00CC96", "SELL": "#EF553B"},
+                hole=0.4
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+        else:
+            st.info(f"No data available for {target_sentiment} in the selected range.")
+
+    # --- Raw Data Expander ---
+    with st.expander("📂 View Raw Data"):
+        st.dataframe(filtered_df)
 
 else:
     st.warning("Please ensure the CSV files are present in the `csv_files/` directory.")

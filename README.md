@@ -119,6 +119,8 @@ The analysis followed a structured data science pipeline:
 
 A comprehensive interactive dashboard has been built to visualize these insights dynamically.
 
+**🌟 Live Demo:** [trader-sentiment-analysis.streamlit.app](https://trader-sentiment-analysis.streamlit.app/)
+
 ### Features
 -   **Interactive Date Filtering**: Analyze specific time periods.
 -   **Automated Data Processing**: Loads and merges data automatically.
