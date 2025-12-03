@@ -112,20 +112,44 @@ The analysis followed a structured data science pipeline:
 *   **Observation**: A scatter plot correlating trade size with realized PnL, color-coded by sentiment.
 *   **Insight**: Helps spot outliers—large bets that either paid off hugely or caused significant losses, and the market sentiment during those events.
 
+
 ---
+
+## 🖥️ Streamlit Dashboard
+
+A comprehensive interactive dashboard has been built to visualize these insights dynamically.
+
+### Features
+-   **Interactive Date Filtering**: Analyze specific time periods.
+-   **Automated Data Processing**: Loads and merges data automatically.
+-   **Visualizations**:
+    -   Average PnL by Sentiment
+    -   Total Trade Volume
+    -   Buy/Sell Ratios
+    -   Profitability Rates
+    -   Average Start Positions
+
+To run the dashboard, follow the instructions in the "How to Run" section below.
+
 
 ## 🚀 How to Run the Analysis
 
 1.  **Prerequisites**: Ensure you have Python installed with the following libraries:
     ```bash
-    pip install pandas matplotlib seaborn numpy
+    pip install -r requirements.txt
     ```
 
 2.  **Run the Notebooks**:
     *   Start with `Notebook_0.ipynb` to see the raw data cleaning.
     *   Proceed to `Notebook_1.ipynb` for the detailed merging and visualization generation.
 
-3.  **View Results**: All generated charts are saved in the `outputs/` folder for easy reference.
+3.  **Run the Streamlit Dashboard**:
+    ```bash
+    streamlit run app.py
+    ```
+    This will launch the interactive dashboard in your default web browser.
+
+4.  **View Notebook Results**: All generated charts from the notebooks are saved in the `outputs/` folder for easy reference.
 
 ## 📝 License
 This project is part of a Data Science assignment for the Web3 Trading Team.
