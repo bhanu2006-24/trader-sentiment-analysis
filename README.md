@@ -1,88 +1,131 @@
 # Trader Sentiment Analysis
 
 ## 📌 Project Overview
-This project explores and analyzes the relationship between **trader behavior** and **market sentiment** (Fear vs. Greed) in the cryptocurrency market. By combining historical trading data from Hyperliquid with the Bitcoin Fear & Greed Index, we aim to identify patterns, trends, and signals that could influence smarter trading strategies.
+This project investigates the correlation between **market sentiment** (specifically the Bitcoin Fear & Greed Index) and **trader performance** (using historical trading data from Hyperliquid). The goal is to determine if market sentiment acts as a reliable signal for trading profitability, volume, and behavior.
+
+By merging sentiment data with granular trading records, we analyze whether traders perform better during periods of "Fear" or "Greed" and how their activity levels shift in response to market emotions.
 
 ## 📂 Project Structure
-The project follows a standardized submission format:
-
 ```
 ds_bhanu/
-├── Notebook_0.ipynb          # Exploratory Data Analysis (EDA) and initial processing
-├── Notebook_1.ipynb          # Key findings, insights, and visualizations
-├── csv_files/                # Raw and processed datasets
-│   ├── fear_greed_index.csv
-│   ├── historical_data.csv
-│   ├── merged.csv
-│   ├── sentiment_clean.csv
-│   └── trader_clean.csv
-├── outputs/                  # Visualizations and graphs
-│   ├── %profitable_trade_by_sentiment.png
-│   ├── Buy_vs_sell_sentiment.png
+├── Notebook_0.ipynb          # Initial Data Loading & Cleaning
+├── Notebook_1.ipynb          # Advanced Analysis, Merging & Visualization
+├── csv_files/                # Data Directory
+│   ├── fear_greed_index.csv  # Sentiment Data
+│   ├── historical_data.csv   # Trader Data
+│   ├── merged.csv            # Combined Dataset
+│   ├── sentiment_clean.csv   # Processed Sentiment
+│   └── trader_clean.csv      # Processed Trades
+├── outputs/                  # Generated Visualizations
 │   ├── avg_pnl_by_sentiment.png
-│   ├── avg_start_pos_by_sentiment.png
-│   ├── buy_sell_ratio_by_sentiment.png
 │   ├── total_volume_by_sentiment.png
-│   ├── trade_size_vs_closed_pnl_by_sentiment.png
-│   └── win_loss_rate_by_sentiment.png
-├── links.txt                 # References and data sources
-├── Instructions Data Science.pdf # Assignment instructions
-└── README.md                 # Project documentation
+│   ├── win_loss_rate_by_sentiment.png
+│   ├── Buy_vs_sell_sentiment.png
+│   └── ... (other plots)
+├── links.txt                 # Data Sources & References
+└── README.md                 # Project Documentation
 ```
 
-## 📊 Datasets
-The analysis is based on two key datasets:
+## 📊 Data Sources
 
-1.  **Bitcoin Market Sentiment Dataset** (`fear_greed_index.csv`)
-    *   **Source**: [Google Drive Link](https://drive.google.com/file/d/1PgQC0tO8XN-wqkNyghWc_-mnrYv_nhSf/view?usp=sharing)
-    *   **Description**: Contains daily sentiment values classified as "Fear", "Greed", "Extreme Fear", "Extreme Greed", or "Neutral".
-    *   **Key Columns**: `Date`, `Value`, `Classification`.
+### 1. Bitcoin Fear & Greed Index (`fear_greed_index.csv`)
+*   **Source**: [Google Drive](https://drive.google.com/file/d/1PgQC0tO8XN-wqkNyghWc_-mnrYv_nhSf/view?usp=sharing)
+*   **Description**: Daily sentiment metric for the crypto market.
+*   **Key Columns**:
+    *   `timestamp`: Unix timestamp of the record.
+    *   `value`: Sentiment score (0-100).
+    *   `classification`: Category (e.g., "Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed").
 
-2.  **Historical Trader Data** (`historical_data.csv`)
-    *   **Source**: [Google Drive Link](https://drive.google.com/file/d/1IAfLZwu6rJzyWKgBToqwSmmVYU6VbjVs/view?usp=sharing)
-    *   **Description**: Detailed trading records from Hyperliquid.
-    *   **Key Columns**: `Account`, `Symbol`, `Execution Price`, `Size`, `Side` (Buy/Sell), `Time`, `Closed PnL`, `Leverage`.
+### 2. Historical Trader Data (`historical_data.csv`)
+*   **Source**: [Google Drive](https://drive.google.com/file/d/1IAfLZwu6rJzyWKgBToqwSmmVYU6VbjVs/view?usp=sharing)
+*   **Description**: Individual trade records from Hyperliquid.
+*   **Key Columns**:
+    *   `Timestamp`: Trade execution time (ms).
+    *   `Side`: Direction of trade ('BUY' or 'SELL').
+    *   `Size USD`: Value of the trade in USD.
+    *   `Closed PnL`: Profit or Loss realized on the trade.
+    *   `Execution Price`: Price at which the trade occurred.
+
+---
 
 ## 🛠️ Methodology
-The analysis workflow is divided into the following stages:
 
-1.  **Data Loading & Cleaning**:
-    *   Loaded raw CSV files using `pandas`.
-    *   Converted timestamps to human-readable datetime formats.
-    *   Cleaned and filtered relevant columns for analysis.
-    *   Saved cleaned versions as `sentiment_clean.csv` and `trader_clean.csv`.
+The analysis followed a structured data science pipeline:
 
-2.  **Data Merging**:
-    *   Merged the trader data with sentiment data based on the `Date` column.
-    *   Created a unified dataset (`merged.csv`) linking every trade to the market sentiment of that day.
+### 1. Data Preprocessing (`Notebook_0.ipynb`)
+*   **Loading**: Datasets were loaded into pandas DataFrames.
+*   **Cleaning**:
+    *   Converted raw Unix timestamps into readable `datetime` objects.
+    *   Removed irrelevant columns from the trader data (e.g., `Account`, `Transaction Hash`, `Order ID`) to focus on performance metrics.
+    *   Standardized dates to allow for merging.
 
-3.  **Exploratory Data Analysis (EDA)**:
-    *   Analyzed trading volume, profitability (PnL), and win/loss rates across different sentiment categories.
-    *   Investigated if traders are more profitable during "Fear" or "Greed" periods.
+### 2. Data Merging (`Notebook_1.ipynb`)
+*   **Alignment**: Both datasets were aligned by `date`.
+*   **Merge**: A **Left Join** was performed to attach the daily `classification` (Sentiment) to every single trade record. This allows us to ask questions like: *"What was the market sentiment when this specific trade lost $500?"*
 
-4.  **Visualization**:
-    *   Generated charts to visualize trends using `matplotlib` and `seaborn`.
-    *   Key plots include Average PnL by Sentiment, Buy vs. Sell Ratios, and Total Trade Volume.
+### 3. Exploratory Data Analysis (EDA)
+*   Grouped data by `classification` (Fear, Greed, etc.).
+*   Aggregated metrics such as **Mean PnL**, **Total Volume**, and **Win/Loss Counts**.
+*   Calculated ratios (e.g., Buy/Sell ratio) for each sentiment category.
 
-## 📈 Key Visualizations
-The `outputs/` directory contains the following insights:
+---
 
-*   **`avg_pnl_by_sentiment.png`**: Shows the average profit/loss realized during different sentiment states.
-*   **`total_volume_by_sentiment.png`**: Displays the total trading volume (in USD) for each sentiment category.
-*   **`win_loss_rate_by_sentiment.png`**: Compares the percentage of profitable trades vs. losing trades across sentiments.
-*   **`Buy_vs_sell_sentiment.png`**: Illustrates the ratio of Buy orders to Sell orders during Fear vs. Greed.
+## 📈 Visual Insights & Findings
 
-## 🚀 Usage & Notebooks
-You can run the analysis using the provided Google Colab notebooks:
+### 1. Profitability by Sentiment
+**Question:** Are traders more profitable when the market is fearful or greedy?
 
-*   **Notebook 0 (EDA)**: [Open in Colab](https://colab.research.google.com/drive/1fwZSGpqMl1hqfoPYQKiwEIJng-l7Jf5Q#scrollTo=X22qAcYChp5D)
-*   **Notebook 1 (Insights)**: [Open in Colab](https://colab.research.google.com/drive/1tGbzZAlgy0sQKBOfTaWTzc6JCMHLoDh5#scrollTo=4f390f66)
+![Average PnL by Sentiment](outputs/avg_pnl_by_sentiment.png)
 
-### Requirements
-To run the code locally, ensure you have the following Python libraries installed:
-```bash
-pip install pandas matplotlib seaborn numpy
-```
+*   **Observation**: This chart displays the average `Closed PnL` for trades executed under different sentiment categories.
+*   **Insight**: Analyzing the bars helps identify if "contrarian" strategies (buying fear) or "momentum" strategies (buying greed) yielded better average returns for this specific trader/dataset.
+
+### 2. Trading Volume & Activity
+**Question:** When are traders most active?
+
+![Total Volume by Sentiment](outputs/total_volume_by_sentiment.png)
+
+*   **Observation**: Shows the total `Size USD` traded across sentiment categories.
+*   **Insight**: High volume during "Extreme Greed" or "Extreme Fear" often indicates emotional trading or high volatility periods attracting more participation.
+
+### 3. Win vs. Loss Rate
+**Question:** How often do trades win in different market conditions?
+
+![Win/Loss Rate](outputs/win_loss_rate_by_sentiment.png)
+
+*   **Observation**: Compares the number of profitable trades vs. losing trades for each sentiment.
+*   **Insight**: A high win rate in "Neutral" markets might suggest range-bound trading strategies working well, whereas "Extreme" conditions might lead to more stop-outs.
+
+### 4. Buy vs. Sell Behavior
+**Question:** Do traders buy more or sell more during specific sentiments?
+
+![Buy vs Sell Ratio](outputs/Buy_vs_sell_sentiment.png)
+
+*   **Observation**: Visualizes the count of Buy orders vs. Sell orders.
+*   **Insight**: This reveals trader bias. For example, heavy buying during "Extreme Greed" suggests retail FOMO (Fear Of Missing Out), while selling during "Fear" suggests panic selling.
+
+### 5. Trade Size vs. Profitability
+**Question:** Is there a relationship between how big a trade is and how much it makes?
+
+![Trade Size vs PnL](outputs/trade_size_vs_closed_pnl_by_sentiment.png)
+
+*   **Observation**: A scatter plot correlating trade size with realized PnL, color-coded by sentiment.
+*   **Insight**: Helps spot outliers—large bets that either paid off hugely or caused significant losses, and the market sentiment during those events.
+
+---
+
+## 🚀 How to Run the Analysis
+
+1.  **Prerequisites**: Ensure you have Python installed with the following libraries:
+    ```bash
+    pip install pandas matplotlib seaborn numpy
+    ```
+
+2.  **Run the Notebooks**:
+    *   Start with `Notebook_0.ipynb` to see the raw data cleaning.
+    *   Proceed to `Notebook_1.ipynb` for the detailed merging and visualization generation.
+
+3.  **View Results**: All generated charts are saved in the `outputs/` folder for easy reference.
 
 ## 📝 License
 This project is part of a Data Science assignment for the Web3 Trading Team.
