@@ -1,5 +1,9 @@
 # Trader Sentiment Analysis
 
+## 🔗 Important Notebook Links
+*   **Notebook 0 (Data Loading & Cleaning)**: [Open in Colab](https://colab.research.google.com/drive/1fwZSGpqMl1hqfoPYQKiwEIJng-l7Jf5Q#scrollTo=inKzw_eDBwIq)
+*   **Notebook 1 (Analysis & Visualization)**: [Open in Colab](https://colab.research.google.com/drive/1tGbzZAlgy0sQKBOfTaWTzc6JCMHLoDh5)
+
 ## 📌 Project Overview
 This project investigates the correlation between **market sentiment** (specifically the Bitcoin Fear & Greed Index) and **trader performance** (using historical trading data from Hyperliquid). The goal is to determine if market sentiment acts as a reliable signal for trading profitability, volume, and behavior.
 
